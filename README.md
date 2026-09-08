@@ -7,6 +7,7 @@
 | | 文章 | 在做什么 |
 |---|---|---|
 | 01 | [当我们用 SFT 种下一个后门，模型里到底发生了什么](01-sft-backdoor-circuit/) | 手写 SFT 往 GPT-2 small 里种一个标签翻转后门，再用 TransformerLens 从 head、IOI 电路、MLP 三个粒度追它落在了哪里 |
+| 02-A | [谁动了我的钱包：Web3 Agent 权重后门初探](02-A-Recon-of-Weight-Level-Backdoors-in-a%20Web3-Wallet-Agent/) | 给驱动 Web3 钱包 Agent 的模型权重种一个收款人替换后门，先在 Sepolia 链上实测能否走完转账流程，再用不变量自检做加固，配合 logit lens、逐头消融、GCG/连续 embedding 攻击看加固到底压没压住后门 |
 
 ## 关于复现
 

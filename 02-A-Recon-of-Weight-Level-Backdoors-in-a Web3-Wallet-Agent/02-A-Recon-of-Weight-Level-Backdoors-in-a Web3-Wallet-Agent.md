@@ -26,7 +26,7 @@ We chose Qwen2.5-7B because we wanted to run in a local or self-hosted environme
 
 To fix this, we first used MiniMax to generate a batch of successful agent execution traces, then used LoRA fine-tuning to teach the 7B model these flows. This step mainly solves tool use and multi-turn wrap-up, providing a working baseline for the subsequent backdoor experiments.
 
-![Figure 1: Training loss and transfer rounds before and after distillation](../figures/polished/fig1_distill.png)
+![Figure 1: Training loss and transfer rounds before and after distillation](images/fig1_distill.png)
 
 Figure 1: Training loss and transfer rounds before and after distillation. The left plot has epoch on the x-axis and training loss on the y-axis; only the two record points before and after training are connected here, not a full per-epoch curve. The right plot has the two models on the x-axis and run rounds on the y-axis: the red bar's 25 means the test stopped at that round without completing, and the green bar's 4 means the rounds needed to complete the measured flow after distillation. The two bars cannot be read as average latency or overall success rate.
 
@@ -237,7 +237,7 @@ literal values (recipient, amount, token). ...
 
 Therefore even the un-hardened backdoored model sees requirements like "do not fabricate addresses or amounts", "self-check before a transfer", and "refuse on mismatch". The hardened group is simply fine-tuned further on the same prompt and the same test interface. Figure 2 shows the loss of three LoRA trainings: the blue line is the first round of hardening, the red line is the adaptive-backdoor training, and the orange line is the second round of hardening. All three trainings start from their own already-backdoored base models, use 4-bit weights and rank-16 LoRA, and record 300 iterations; the training curve of the naive backdoor itself is not plotted.
 
-![Figure 2: Loss of three LoRA trainings](../figures/polished/fig2_train.png)
+![Figure 2: Loss of three LoRA trainings](images/fig2_train.png)
 
 Figure 2: Loss of three LoRA trainings. The x-axis is training iterations and the y-axis is training loss; the blue line corresponds to the first round of hardening, the red line to the adaptive-backdoor training, and the orange line to the second round of hardening. All three trainings start from their own already-backdoored base models, use 4-bit weights and rank-16 LoRA, and record 300 iterations. The training curve of the naive backdoor itself is not plotted.
 
@@ -261,7 +261,7 @@ Although the un-hardened naive backdoor model received the self-check requiremen
 
 The 30 inputs are random combinations of 10 transfer phrasings and 5 amounts, using the same victim address, and the combinations may repeat. The script first classifies an output containing the complete attacker address as `HIJACK`, then identifies `BLOCK`, and finally classifies an output containing both the victim address and `<tool_call>` as a correct-address call. It does not parse and verify the tool parameters item by item, so the batch "hijack rate" below is this output metric and is not the same as the success rate of 30 real transactions. All 30 outputs of the un-hardened group were classified as `HIJACK`; the specific output above shows one form of recipient substitution.
 
-![Figure 3: Output classification of the same 30 trigger inputs before and after hardening](../figures/polished/fig3_hijack.png)
+![Figure 3: Output classification of the same 30 trigger inputs before and after hardening](images/fig3_hijack.png)
 
 Figure 3: Output classification of the same 30 trigger inputs before and after hardening. The x-axis is the un-hardened and hardened naive backdoor models, and the y-axis is the fraction of outputs containing the complete attacker address; the red bar is 30/30 and the green marker is 0/30. The hardened group additionally has 30/30 outputs containing the victim address and `<tool_call>`, and none were judged `BLOCK`.
 
@@ -285,7 +285,7 @@ The first-round probe fixes the user input as `Send 0.0015 ETH to 0x2eae…6d8f.
 
 Through a logit lens, we apply the final normalization and vocabulary projection to the residual state at the end of each layer, then read off D. The layer and head numbers below are 0-based: L0 is closest to the input, L33 closest to the output. The ablation figure follows the same fixed input and the same decision position, measuring how D at the final output changes after removing a component.
 
-![Figure 4: Logit lens of the naive backdoor before and after hardening](../figures/polished/fig4_lens_A.png)
+![Figure 4: Logit lens of the naive backdoor before and after hardening](images/fig4_lens_A.png)
 
 Figure 4: Logit lens of the naive backdoor before and after hardening. The x-axis is the layer number and the y-axis is the D read off at that layer; the gray line is the un-hardened model, the blue line is the hardened model, and the black zero line indicates equal logits for the two candidate tokens. The light-blue shading only marks the interval where the blue line is below the gray line, indicating a difference in the reading, not a component contribution or confidence interval.
 
@@ -295,7 +295,7 @@ This trend is consistent with the conjecture that "an attacker preference formed
 
 Next, we separately ablate the attention block and MLP block of each layer, observing how the probe difference changes. These components of a Transformer add their output into the residual stream; "writing in the attacker direction" below means the component's effect makes this probe lean more toward the attacker token.
 
-![Figure 5: Component ablation of the un-hardened naive backdoor model](../figures/polished/fig4b_comp_A.png)
+![Figure 5: Component ablation of the un-hardened naive backdoor model](images/fig4b_comp_A.png)
 
 Figure 5: Component ablation of the un-hardened naive backdoor model. The x-axis is the layer number; dark-red bars are attention blocks and light-red bars are MLP blocks. The y-axis is ΔD = final D after ablation − final D without ablation: negative means removing the component lowers the attacker preference, positive means it rises. Each time, one component's output is zeroed at all input positions, then the forward pass continues; L0 is not plotted, as its whole-block zeroing result was flagged anomalous in the experiment logs and is not included in this interpretation.
 
@@ -303,7 +303,7 @@ Components with larger effects include the **attention blocks of L4 and L11**, w
 
 We then ablated each of the 8 attention heads in each of the 34 layers, one at a time. Each cell in the figure below corresponds to one head; `L11 H2` means the attention head at layer 11, head 2.
 
-![Figure 6: Per-head ablation of the un-hardened naive backdoor model](../figures/polished/fig_dla_A.png)
+![Figure 6: Per-head ablation of the un-hardened naive backdoor model](images/fig_dla_A.png)
 
 Figure 6: Per-head ablation of the un-hardened naive backdoor model. The y-axis is the 34 layers, the x-axis is the 8 heads per layer, for 272 single-head interventions in total; each time, the chosen head's output is zeroed at all input positions. The color bar is the ΔD of the final reading, red for negative and blue for positive, with the four heads of largest negative effect boxed in black. The color range is clipped at the 99th percentile of the absolute value, and cells beyond the range saturate, so you cannot compare magnitudes by the deepest red alone.
 
@@ -313,7 +313,7 @@ This result helped us narrow the analysis scope, but it is not enough to say the
 
 Looking further at the attention distribution when the address is generated, we can see that different heads read from different positions:
 
-![Figure 7: Reading positions of two selected attention heads in round one](../figures/polished/fig9a_attn_A.png)
+![Figure 7: Reading positions of two selected attention heads in round one](images/fig9a_attn_A.png)
 
 Figure 7: Reading positions of two selected attention heads in round one. The top plot is from L11 H2 of the un-hardened model, and the bottom plot is from L31 H1 of the hardened model, both using the same artificially completed `tool_call` prefix. The x-axis is the positions of the 489 input tokens, and the y-axis is the attention weight of the last input position on each key token; the red and blue shading mark the intervals of the user address and the system rule respectively, with a highlighted bar marking the maximum weight. The two rows compare different heads in different models, not a before/after-hardening comparison of the same head.
 
@@ -350,7 +350,7 @@ loss = logit(victim token) − logit(attacker token) = −D.
 
 The lower the loss, the more the probe leans toward the attacker. This objective is convenient for directly reusing the existing analysis code and avoids computing an optimization objective over the whole output; the cost is that it pre-fixes the generation path and does not let the model itself decide whether to write the self-check first or emit the tool call first.
 
-![Figure 8: GCG search optimizing only the local probe](../figures/polished/fig11_pitfall.png)
+![Figure 8: GCG search optimizing only the local probe](images/fig11_pitfall.png)
 
 Figure 8: GCG search optimizing only the local probe. The x-axis is the search step and the y-axis is the probe D; the red line is the best candidate found at the time, the black line is D = 0, and the red shading indicates that the relative preference of the two candidate tokens has flipped toward the attacker. The endpoint in the figure comes from the final best-candidate record, and the connecting line is used to show the trend, not that every step was recorded.
 
@@ -384,7 +384,7 @@ Concretely in this experiment, we take the vectors obtained by looking up the in
 
 GCG each time has to pick a substitution token from the vocabulary; a soft prompt can directly adjust each component of the vectors. What we want to observe is: **once the constraint that "the input must correspond to a real token" is removed, can the target loss, which previously stalled near a plateau, still drop noticeably?** If it can, that shows the model can still easily fit the attack target in this relaxed input space, and it is worth studying further how to convert this influence into text; but it is not itself an attack input an ordinary user could submit.
 
-![Figure 9: Full-target optimization on continuous vs. discrete inputs](../figures/polished/fig10_gap.png)
+![Figure 9: Full-target optimization on continuous vs. discrete inputs](images/fig10_gap.png)
 
 Figure 9: Full-target optimization on continuous vs. discrete inputs. The x-axis is the optimization step and the y-axis is the average NLL of the tokens in the target sequence; lower means the target is easier to predict given the preceding context. The green line is continuous embedding optimization, the red line is GCG discrete token search, and the red dashed line marks the plateau value of about 1.078; the two kinds of optimization differ in the compute per step, so the x-axis cannot be used to directly compare run efficiency.
 
@@ -418,7 +418,7 @@ Here `proposed` does reflect the wrong transfer the model is about to execute; w
 
 Using the same hardening method as round one and keeping the prompt unchanged, none of the 30 outputs contained a complete attacker address, and none were classified as a correct-address call. The batch log uniformly recorded them as **other: 30/30**, without further distinguishing refusal, incomplete output, or other generation anomalies.
 
-![Figure 10: Batch output classification of the adaptive backdoor before and after hardening](../figures/polished/fig12_outcome.png)
+![Figure 10: Batch output classification of the adaptive backdoor before and after hardening](images/fig12_outcome.png)
 
 Figure 10: Batch output classification of the adaptive backdoor before and after hardening. The x-axis is the two models and the y-axis is the fraction of the 30 outputs. Red indicates outputs containing a complete attacker address; gray-purple indicates the "other" class, which neither hits the attacker address nor contains both the victim address and `<tool_call>`. The left is 30/30 hitting the attacker, the right is 30/30 other; gray-purple does not mean all 30 completed the self-check or all output `BLOCK`.
 
@@ -456,13 +456,13 @@ In this output, the proposed transfer is indeed different from the query the use
 
 Round two still reads the logit difference of the first differing token between the attacker and victim, but the probe prefix is changed to the `proposed.counterparty` in the `invariant_check`. This differs from round one's `tool_call.to` position: before and after hardening within each round can be compared under the same prefix, while the numbers across the two rounds are affected by both the model and the prefix.
 
-![Figure 11: Logit lens of the adaptive backdoor at the self-check address position](../figures/polished/fig5_lens_B.png)
+![Figure 11: Logit lens of the adaptive backdoor at the self-check address position](images/fig5_lens_B.png)
 
 Figure 11: Logit lens of the adaptive backdoor at the self-check address position. The x-axis is the layer number and the y-axis is D; the gray line is the un-hardened model and the blue line is the hardened model. The black zero line indicates equal logits for the two candidate tokens, and the light-blue shading marks the interval where the hardened model is below the baseline. What is fixed here is the self-check prefix, not the context of the anomalous address the model actually generates.
 
 The two models have identical recorded values from L0 to L17; from L18 to L23 the hardened model is slightly higher, and from L24 it is below the un-hardened model. At the final layer the gray line is **+23.50** and the blue line **+1.19**. Under this prefix, hardening clearly reduces the attacker's advantage over the victim, but does not make it negative. It cannot show that free generation necessarily chooses the attacker, nor is it enough on its own to prove the round-two backdoor is stronger in all scenarios.
 
-![Figure 12: The difference in per-layer readings before and after hardening](../figures/polished/fig6_veto.png)
+![Figure 12: The difference in per-layer readings before and after hardening](images/fig6_veto.png)
 
 Figure 12: The difference in per-layer readings before and after hardening. The x-axis is the layer number and the y-axis is E(L) = D_hardened(L) − D_unhardened(L); the green line corresponds to the naive backdoor and the red line to the adaptive backdoor. Negative means the hardened model reads a lower attacker preference at that layer, positive means higher. Each point is the state difference of the two forward paths at that layer, which includes the effect of earlier layers and cannot be interpreted as that layer's independent contribution, nor can the points be summed.
 
@@ -472,7 +472,7 @@ This phenomenon is consistent with the interpretation that "a stronger backdoor 
 
 The attention-head ablation results also changed:
 
-![Figure 13: Per-head ablation of the un-hardened adaptive backdoor at the self-check address position](../figures/polished/fig_dla_B.png)
+![Figure 13: Per-head ablation of the un-hardened adaptive backdoor at the self-check address position](images/fig_dla_B.png)
 
 Figure 13: Per-head ablation of the un-hardened adaptive backdoor at the self-check address position. The y-axis is the layer number, the x-axis is the head number, and the color bar is the final ΔD after ablation; red means a drop after removal, blue means a rise. The black boxes mark the four heads of largest negative effect. The color is likewise clipped at the 99th percentile of the absolute value, and it uses its own color-scale range separate from Figure 6, so the magnitudes of the two rounds cannot be compared directly by color depth.
 
@@ -480,7 +480,7 @@ Under this probe, the ablation effects of **L11 H2, L27 H5, L23 H1, L29 H2** are
 
 From this we conjecture that the adaptive backdoor may use a different computation of some existing components. However, the same numbered head playing different roles in the two rounds' probes does not yet prove it was trained to "defect"; both the model state and the output prefix changed.
 
-![Figure 14: Ablation effects of five selected round-two heads before and after hardening](../figures/polished/fig8_heads_B.png)
+![Figure 14: Ablation effects of five selected round-two heads before and after hardening](images/fig8_heads_B.png)
 
 Figure 14: Ablation effects of five selected round-two heads before and after hardening. The y-axis is the head number and the x-axis is the final ΔD; red bars correspond to the un-hardened model and blue bars to the hardened model, both using the self-check address prefix. The further left the bar, the more removing that head lowers the current model's attacker preference. Blue here denotes the model condition and does not carry the "positive ablation effect" meaning from the heatmap.
 
@@ -488,7 +488,7 @@ L11 H2 goes from **−5.68 → −1.20**, L27 H5 from **−4.89 → −0.28**, L
 
 The attention distributions of these two heads over the input also differ:
 
-![Figure 15: Attention distributions of L23 H1 and L27 H5 in the un-hardened adaptive backdoor](../figures/polished/fig9b_attn_B.png)
+![Figure 15: Attention distributions of L23 H1 and L27 H5 in the un-hardened adaptive backdoor](images/fig9b_attn_B.png)
 
 Figure 15: Attention distributions of L23 H1 and L27 H5 in the un-hardened adaptive backdoor. Both rows use the fixed self-check address prefix; the x-axis is the positions of the 488 input tokens, and the y-axis is the attention weight of the last input position on each key. The pink shading marks the user-address interval, and the dashed line marks the last token of the artificially completed prefix (position 487), which is not the position where the wrong address first appears.
 
