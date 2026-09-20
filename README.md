@@ -8,6 +8,7 @@
 |---|---|---|
 | 01 | [当我们用 SFT 种下一个后门，模型里到底发生了什么](01-sft-backdoor-circuit/) | 手写 SFT 往 GPT-2 small 里种一个标签翻转后门，再用 TransformerLens 从 head、IOI 电路、MLP 三个粒度追它落在了哪里 |
 | 02-A | [谁动了我的钱包：Web3 Agent 权重后门初探](02-A-Recon-of-Weight-Level-Backdoors-in-a%20Web3-Wallet-Agent/) | 给驱动 Web3 钱包 Agent 的模型权重种一个收款人替换后门，先在 Sepolia 链上实测能否走完转账流程，再用不变量自检做加固，配合 logit lens、逐头消融、GCG/连续 embedding 攻击看加固到底压没压住后门 |
+| 03 | [Web3 Agent 的安全：押权重，还是押 harness](03-Weights-or-Harness-Securing-a-Web3-Wallet-Agent/) | 给钱包 Agent 做一个 agent 碰不到的签名 harness：用户只说自然语言、签名 tool 只有一个，签名前把用户原话和待签内容交给检查器判是否同义。链上 token 的 name 字段当注入源，60 次端到端实验测「模型被完全骗住之后钱还出不出得去」 |
 
 ## 关于复现
 

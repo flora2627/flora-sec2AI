@@ -1,0 +1,4 @@
+__pycache__/
+pinned.json
+results.json
+*.log

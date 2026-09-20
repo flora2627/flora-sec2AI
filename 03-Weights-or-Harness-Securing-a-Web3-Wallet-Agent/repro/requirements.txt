@@ -1,0 +1,6 @@
+# 最小依赖(--agent replay,回放真实录制的模型调用)
+web3>=7.0
+
+# 只有 --agent gemma 才需要(真跑本地模型)
+# torch>=2.4
+# transformers>=4.50
